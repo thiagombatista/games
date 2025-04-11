@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Games Directory</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+        
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-container {
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Tic Tac Toe styles */
+        .cell {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #2d3748;
+            font-size: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .cell:hover {
+            background-color: #edf2f7;
+        }
+        
+        /* Snake game styles */
+        #snake-canvas {
+            background-color: #1a202c;
+            border-radius: 8px;
+        }
+        
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #4299e1;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        
+        .control-btn:hover {
+            background-color: #3182ce;
+        }
+        
+        .keyboard-controls span {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 0 5px;
+            background-color: #2d3748;
+            color: white;
+            border-radius: 5px;
+        }
+        
+        @media (max-width: 640px) {
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 48px;
+            }
+            
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">JavaScript Games Directory</h1>
+            <p class="text-gray-600 text-lg">Select a game below to start playing</p>
+        </header>
+        
+        <!-- Game Selection -->
+        <div id="game-selection" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <!-- Tic Tac Toe Card -->
+            <div class="game-card bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl">
+                <div class="bg-indigo-600 text-white p-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-th mr-2"></i>
+                        Tic Tac Toe
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <p class="text-gray-700 mb-4">Classic game of X's and O's. Get three in a row to win!</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">2 Players</span>
+                        <button onclick="showGame('tictactoe')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                            Play Now
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Snake Game Card -->
+            <div class="game-card bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl">
+                <div class="bg-green-600 text-white p-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-snake mr-2"></i>
+                        Snake Game
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <p class="text-gray-700 mb-4">Control the snake to eat food and grow without hitting the walls or yourself!</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">1 Player</span>
+                        <button onclick="showGame('snake')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                            Play Now
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tic Tac Toe Game Container -->
+        <div id="tictactoe-container" class="game-container hidden bg-white p-8 rounded-lg shadow-lg mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-indigo-800">Tic Tac Toe</h2>
+                <button onclick="backToSelection()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back
+                </button>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div id="status" class="text-xl font-semibold mb-4 text-gray-800">Player X's turn</div>
+                
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <div class="cell" data-index="0"></div>
+                    <div class="cell" data-index="1"></div>
+                    <div class="cell" data-index="2"></div>
+                    <div class="cell" data-index="3"></div>
+                    <div class="cell" data-index="4"></div>
+                    <div class="cell" data-index="5"></div>
+                    <div class="cell" data-index="6"></div>
+                    <div class="cell" data-index="7"></div>
+                    <div class="cell" data-index="8"></div>
+                </div>
+                
+                <button id="reset-tictactoe" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                    Reset Game
+                </button>
+            </div>
+        </div>
+        
+        <!-- Snake Game Container -->
+        <div id="snake-container" class="game-container hidden bg-white p-8 rounded-lg shadow-lg mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-green-800">Snake Game</h2>
+                <button onclick="backToSelection()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back
+                </button>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div class="flex justify-between w-full mb-4">
+                    <div class="text-xl font-semibold">Score: <span id="snake-score">0</span></div>
+                    <div class="text-xl font-semibold">High Score: <span id="snake-high-score">0</span></div>
+                </div>
+                
+                <canvas id="snake-canvas" width="400" height="400" class="mb-6"></canvas>
+                
+                <div class="flex flex-wrap justify-center gap-4 mb-6">
+                    <button id="start-snake" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                        Start Game
+                    </button>
+                    <button id="pause-snake" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                        Pause
+                    </button>
+                    <button id="reset-snake" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                        Reset
+                    </button>
+                </div>
+                
+                <!-- Touch Controls for Mobile -->
+                <div class="md:hidden grid grid-cols-3 gap-2 mb-6">
+                    <div></div>
+                    <div class="control-btn" id="up-btn"><i class="fas fa-arrow-up"></i></div>
+                    <div></div>
+                    <div class="control-btn" id="left-btn"><i class="fas fa-arrow-left"></i></div>
+                    <div></div>
+                    <div class="control-btn" id="right-btn"><i class="fas fa-arrow-right"></i></div>
+                    <div></div>
+                    <div class="control-btn" id="down-btn"><i class="fas fa-arrow-down"></i></div>
+                    <div></div>
+                </div>
+                
+                <!-- Keyboard controls info -->
+                <div class="keyboard-controls hidden md:block bg-gray-100 p-4 rounded-lg">
+                    <p class="mb-2 text-gray-700">Use keyboard controls:</p>
+                    <div class="flex justify-center">
+                        <span>W</span>
+                        <span>A</span>
+                        <span>S</span>
+                        <span>D</span>
+                        <span>or</span>
+                        <span>↑</span>
+                        <span>←</span>
+                        <span>↓</span>
+                        <span>→</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Common Functions
+        function showGame(game) {
+            document.getElementById('game-selection').classList.add('hidden');
+            
+            if (game === 'tictactoe') {
+                document.getElementById('tictactoe-container').classList.remove('hidden');
+                resetTicTacToe();
+            } else if (game === 'snake') {
+                document.getElementById('snake-container').classList.remove('hidden');
+                resetSnakeGame();
+            }
+        }
+        
+        function backToSelection() {
+            document.getElementById('game-selection').classList.remove('hidden');
+            document.getElementById('tictactoe-container').classList.add('hidden');
+            document.getElementById('snake-container').classList.add('hidden');
+            
+            // Pause snake game if active
+            if (snakeGameInterval) {
+                clearInterval(snakeGameInterval);
+                snakeGameInterval = null;
+            }
+        }
+        
+        // Tic Tac Toe Game
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        
+        function resetTicTacToe() {
+            currentPlayer = 'X';
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
+            
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.style.backgroundColor = '';
+            });
+        }
+        
+        function handleCellClick(e) {
+            const cellIndex = e.target.getAttribute('data-index');
+            
+            if (gameBoard[cellIndex] !== '' || !gameActive) {
+                return;
+            }
+            
+            updateCell(e.target, cellIndex);
+            checkGameResult();
+        }
+        
+        function updateCell(cell, index) {
+            gameBoard[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            
+            if (currentPlayer === 'X') {
+                cell.style.color = '#4f46e5'; // Indigo
+            } else {
+                cell.style.color = '#16a34a'; // Green
+            }
+        }
+        
+        function changePlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
+        }
+        
+        function checkGameResult() {
+            const winConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+            
+            let roundWon = false;
+            
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    roundWon = true;
+                    
+                    // Highlight winning cells
+                    const cells = document.querySelectorAll('.cell');
+                    cells[a].style.backgroundColor = '#c7d2fe'; // Light indigo
+                    cells[b].style.backgroundColor = '#c7d2fe';
+                    cells[c].style.backgroundColor = '#c7d2fe';
+                    break;
+                }
+            }
+            
+            if (roundWon) {
+                document.getElementById('status').textContent = `Player ${currentPlayer} wins!`;
+                gameActive = false;
+                return;
+            }
+            
+            // Check for draw
+            if (!gameBoard.includes('')) {
+                document.getElementById('status').textContent = 'Game ended in a draw!';
+                gameActive = false;
+                return;
+            }
+            
+            changePlayer();
+        }
+        
+        // Snake Game
+        let canvas, ctx;
+        let snake = [];
+        let food = {};
+        let direction = 'right';
+        let nextDirection = 'right';
+        let score = 0;
+        let highScore = 0;
+        let gameSpeed = 100;
+        let snakeGameInterval = null;
+        let isPaused = false;
+        const gridSize = 20;
+        const gridCount = 20;
+        
+        function initSnakeGame() {
+            canvas = document.getElementById('snake-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Touch controls
+            document.getElementById('up-btn').addEventListener('click', () => changeDirection('up'));
+            document.getElementById('down-btn').addEventListener('click', () => changeDirection('down'));
+            document.getElementById('left-btn').addEventListener('click', () => changeDirection('left'));
+            document.getElementById('right-btn').addEventListener('click', () => changeDirection('right'));
+            
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyDown);
+            
+            resetSnakeGame();
+            
+            // Buttons
+            document.getElementById('start-snake').addEventListener('click', startSnakeGame);
+            document.getElementById('pause-snake').addEventListener('click', togglePauseGame);
+            document.getElementById('reset-snake').addEventListener('click', resetSnakeGame);
+        }
+        
+        function resetSnakeGame() {
+            clearInterval(snakeGameInterval);
+            snakeGameInterval = null;
+            isPaused = false;
+            
+            // Reset snake
+            snake = [
+                { x: 6 * gridSize, y: 10 * gridSize },
+                { x: 5 * gridSize, y: 10 * gridSize },
+                { x: 4 * gridSize, y: 10 * gridSize }
+            ];
+            
+            // Reset direction
+            direction = 'right';
+            nextDirection = 'right';
+            
+            // Reset score
+            score = 0;
+            document.getElementById('snake-score').textContent = score;
+            
+            // Create food
+            createFood();
+            
+            // Draw initial state
+            drawSnake();
+            drawFood();
+            
+            // Update button text
+            document.getElementById('pause-snake').textContent = 'Pause';
+        }
+        
+        function startSnakeGame() {
+            if (!snakeGameInterval) {
+                snakeGameInterval = setInterval(gameLoop, gameSpeed);
+            }
+        }
+        
+        function togglePauseGame() {
+            if (!snakeGameInterval) return;
+            
+            if (isPaused) {
+                snakeGameInterval = setInterval(gameLoop, gameSpeed);
+                document.getElementById('pause-snake').textContent = 'Pause';
+            } else {
+                clearInterval(snakeGameInterval);
+                snakeGameInterval = null;
+                document.getElementById('pause-snake').textContent = 'Resume';
+            }
+            
+            isPaused = !isPaused;
+        }
+        
+        function handleKeyDown(e) {
+            // Arrow keys and WASD
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    changeDirection('up');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    changeDirection('down');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    changeDirection('left');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    changeDirection('right');
+                    break;
+                case ' ':
+                    // Space to start/pause
+                    if (!snakeGameInterval) {
+                        startSnakeGame();
+                    } else {
+                        togglePauseGame();
+                    }
+                    break;
+            }
+        }
+        
+        function changeDirection(newDirection) {
+            if (
+                (newDirection === 'up' && direction !== 'down') ||
+                (newDirection === 'down' && direction !== 'up') ||
+                (newDirection === 'left' && direction !== 'right') ||
+                (newDirection === 'right' && direction !== 'left')
+            ) {
+                nextDirection = newDirection;
+            }
+        }
+        
+        function createFood() {
+            food = {
+                x: Math.floor(Math.random() * gridCount) * gridSize,
+                y: Math.floor(Math.random() * gridCount) * gridSize
+            };
+            
+            // Make sure food doesn't appear on the snake
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === food.x && snake[i].y === food.y) {
+                    createFood();
+                    break;
+                }
+            }
+        }
+        
+        function gameLoop() {
+            direction = nextDirection;
+            moveSnake();
+            checkCollision();
+            draw();
+        }
+        
+        function moveSnake() {
+            const head = { x: snake[0].x, y: snake[0].y };
+            
+            switch (direction) {
+                case 'up':
+                    head.y -= gridSize;
+                    break;
+                case 'down':
+                    head.y += gridSize;
+                    break;
+                case 'left':
+                    head.x -= gridSize;
+                    break;
+                case 'right':
+                    head.x += gridSize;
+                    break;
+            }
+            
+            snake.unshift(head);
+            
+            // Check if snake eats food
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                document.getElementById('snake-score').textContent = score;
+                
+                if (score > highScore) {
+                    highScore = score;
+                    document.getElementById('snake-high-score').textContent = highScore;
+                }
+                
+                createFood();
+            } else {
+                snake.pop();
+            }
+        }
+        
+        function checkCollision() {
+            const head = snake[0];
+            
+            // Wall collision
+            if (
+                head.x < 0 || 
+                head.x >= canvas.width || 
+                head.y < 0 || 
+                head.y >= canvas.height
+            ) {
+                gameOver();
+                return;
+            }
+            
+            // Self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                    return;
+                }
+            }
+        }
+        
+        function gameOver() {
+            clearInterval(snakeGameInterval);
+            snakeGameInterval = null;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 30);
+            
+            ctx.font = '20px Arial';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
+            ctx.fillText('Press Reset to play again', canvas.width / 2, canvas.height / 2 + 50);
+        }
+        
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawSnake();
+            drawFood();
+        }
+        
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                // Head color different from body
+                if (index === 0) {
+                    ctx.fillStyle = '#16a34a'; // Green
+                } else {
+                    ctx.fillStyle = '#22c55e'; // Lighter green
+                }
+                
+                ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+                
+                // Add a border to each segment
+                ctx.strokeStyle = '#dcfce7';
+                ctx.strokeRect(segment.x, segment.y, gridSize, gridSize);
+            });
+        }
+        
+        function drawFood() {
+            ctx.fillStyle = '#ef4444'; // Red
+            ctx.beginPath();
+            ctx.arc(
+                food.x + gridSize / 2,
+                food.y + gridSize / 2,
+                gridSize / 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+        
+        // Initialize games
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Tic Tac Toe
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+            document.getElementById('reset-tictactoe').addEventListener('click', resetTicTacToe);
+            
+            // Initialize Snake Game
+            initSnakeGame();
+        });
+    </script>
+</body>
+</html>
